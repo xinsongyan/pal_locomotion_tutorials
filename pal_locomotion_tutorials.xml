@@ -1,0 +1,10 @@
+<library path="lib/libpal_locomotion_tutorials_plugins">
+
+  <class name="pal_locomotion::BalanceAction" type="pal_locomotion::BalanceAction" base_class_type="pal_locomotion::WalkingActionBase">
+    <description>
+     Action
+    </description>
+  </class>
+
+</library>
+

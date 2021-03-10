@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>pal_locomotion_tutorials</name>
+  <version>0.1.7</version>
+  <description>The pal_locomotion_tutorials package</description>
+
+  <!-- One maintainer tag required, multiple allowed, one person per tag -->
+  <!-- Example:  -->
+  <!-- <maintainer email="jane.doe@example.com">Jane Doe</maintainer> -->
+  <maintainer email="adria.roig@pal-robotics.com">Adria Roig</maintainer>
+  <author email="adria.roig@pal-robotics.com">Adria Roig</author>
+  <author email="sai.kishor@pal-robotics.com">Sai Kishor Kothakota</author>
+
+  <!-- One license tag required, multiple allowed, one license per tag -->
+  <!-- Commonly used license strings: -->
+  <!--   BSD, MIT, Boost Software License, GPLv2, GPLv3, LGPLv2.1, LGPLv3 -->
+  <license>TODO</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <depend>pal_locomotion</depend>
+  <depend>pluginlib</depend>
+  <depend>roscpp</depend>
+  <depend>pal_talos_walk_impl</depend>
+
+  <!-- The export tag contains other, unspecified, tags -->
+  <export>
+    <pal_locomotion plugin="${prefix}/pal_locomotion_tutorials.xml" />
+  </export>
+</package>
