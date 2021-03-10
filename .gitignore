@@ -3,3 +3,4 @@
 *swp
 cmake-build-debug
 .idea
+*.json

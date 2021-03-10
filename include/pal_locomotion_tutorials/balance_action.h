@@ -11,6 +11,12 @@
 
 #include <pal_locomotion/biped_controller.h>
 #include <pal_locomotion/state_machine/walking_action_base.h>
+// For realtime publisher and subscriber
+#include <realtime_tools/realtime_publisher.h>
+#include <std_msgs/Float64MultiArray.h>
+#include <realtime_tools/realtime_buffer.h>
+#include <ros/node_handle.h>
+#include<cmath>
 //#include <icp_walking_sim/icp_walking.h>
 
 namespace pal_locomotion
@@ -91,6 +97,10 @@ private:
   ddynamic_reconfigure::DDynamicReconfigurePtr ddr_;
   BalanceActionParameters params_;
   double time_;
+
+  std::shared_ptr<realtime_tools::RealtimePublisher<std_msgs::Float64MultiArray>> com_states_pub_;
+  double n_com_states_;
+  eVector3 current_com_pos_;
 };
 }
 
