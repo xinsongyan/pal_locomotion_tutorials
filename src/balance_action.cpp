@@ -40,6 +40,8 @@ bool BalanceAction::configure(ros::NodeHandle &nh, BController *bController,
   ddr_->RegisterVariable(&params_.sin_amp_y_, "amplitude_y", 0.0, 0.07);
   ddr_->RegisterVariable(&params_.sin_freq_x_, "frequency_x", 0.0, 2.0);
   ddr_->RegisterVariable(&params_.sin_amp_x_, "amplitude_x", 0.0, 0.05);
+    ddr_->RegisterVariable(&params_.Kp_, "Kp", 0.0, 10.0);
+    ddr_->RegisterVariable(&params_.Kd_, "kd", 0.0, 1.0);
   ddr_->publishServicesTopics();
   return true;
 }

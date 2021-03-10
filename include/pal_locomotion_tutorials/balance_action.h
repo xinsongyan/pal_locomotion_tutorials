@@ -30,6 +30,8 @@ struct BalanceActionParameters : public ariles::ConfigurableBase
     sin_amp_y_ = 0.0;
     sin_freq_x_ = 1.0;
     sin_amp_x_ = 0.0;
+      Kp_ = 1.0;
+      Kd_ = 0.1;
   }
 
 #define ARILES_SECTION_ID "BalanceActionParameters"
@@ -46,6 +48,7 @@ struct BalanceActionParameters : public ariles::ConfigurableBase
   double sin_freq_z_, sin_amp_z_;
   double sin_freq_y_, sin_amp_y_;
   double sin_freq_x_, sin_amp_x_;
+  double Kp_, Kd_;  //com feedback gains
 };
 
 class BalanceAction : public WalkingActionBase
