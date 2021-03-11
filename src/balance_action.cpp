@@ -40,8 +40,12 @@ bool BalanceAction::configure(ros::NodeHandle &nh, BController *bController,
   ddr_->RegisterVariable(&params_.sin_amp_y_, "amplitude_y", 0.0, 0.07);
   ddr_->RegisterVariable(&params_.sin_freq_x_, "frequency_x", 0.0, 2.0);
   ddr_->RegisterVariable(&params_.sin_amp_x_, "amplitude_x", 0.0, 0.05);
-    ddr_->RegisterVariable(&params_.Kp_, "Kp", 0.0, 10.0);
-    ddr_->RegisterVariable(&params_.Kd_, "kd", 0.0, 1.0);
+  ddr_->RegisterVariable(&params_.Kp_x_, "Kp_x", 0.0, 10.0);
+  ddr_->RegisterVariable(&params_.Kd_x_, "kd_x", 0.0, 1.0);
+  ddr_->RegisterVariable(&params_.Kp_y_, "Kp_y", 0.0, 10.0);
+  ddr_->RegisterVariable(&params_.Kd_y_, "kd_y", 0.0, 1.0);
+  ddr_->RegisterVariable(&params_.Kp_z_, "Kp_z", 0.0, 10.0);
+  ddr_->RegisterVariable(&params_.Kd_z_, "kd_z", 0.0, 1.0);
   ddr_->publishServicesTopics();
 
   // For realtime publisher
@@ -89,17 +93,17 @@ bool BalanceAction::cycleHook(const ros::Time &time)
   Eigen::Vector3d desired_vel;
   Eigen::Vector3d desired_acc;
 
-  desired_pos[0] = params_.sin_amp_x_*sin(2*M_PI* time_*params_.sin_freq_x_);
-  desired_pos[1] = params_.sin_amp_y_*sin(2*M_PI* time_*params_.sin_freq_y_);
-  desired_pos[2] = params_.sin_amp_z_*sin(2*M_PI* time_*params_.sin_freq_z_) +  bc_->getParameters()->z_height_;
+  desired_pos.x() = params_.sin_amp_x_*sin(2*M_PI* time_*params_.sin_freq_x_);
+  desired_pos.y() = params_.sin_amp_y_*sin(2*M_PI* time_*params_.sin_freq_y_);
+  desired_pos.z() = params_.sin_amp_z_*sin(2*M_PI* time_*params_.sin_freq_z_) +  bc_->getParameters()->z_height_;
 
-  desired_vel[0] = params_.sin_amp_x_*2*M_PI*params_.sin_freq_x_*cos(2*M_PI* time_*params_.sin_freq_x_);
-  desired_vel[1] = params_.sin_amp_y_*2*M_PI*params_.sin_freq_y_*cos(2*M_PI* time_*params_.sin_freq_y_);
-  desired_vel[2] = params_.sin_amp_z_*2*M_PI*params_.sin_freq_z_*cos(2*M_PI* time_*params_.sin_freq_z_);
+  desired_vel.x() = params_.sin_amp_x_*2*M_PI*params_.sin_freq_x_*cos(2*M_PI* time_*params_.sin_freq_x_);
+  desired_vel.y() = params_.sin_amp_y_*2*M_PI*params_.sin_freq_y_*cos(2*M_PI* time_*params_.sin_freq_y_);
+  desired_vel.z() = params_.sin_amp_z_*2*M_PI*params_.sin_freq_z_*cos(2*M_PI* time_*params_.sin_freq_z_);
 
-  desired_acc[0] = -params_.sin_amp_x_*pow(2*M_PI*params_.sin_freq_x_, 2)*sin(2*M_PI* time_*params_.sin_freq_x_);
-  desired_acc[1] = -params_.sin_amp_y_*pow(2*M_PI*params_.sin_freq_y_, 2)*sin(2*M_PI* time_*params_.sin_freq_y_);
-  desired_acc[2] = -params_.sin_amp_z_*pow(2*M_PI*params_.sin_freq_z_, 2)*sin(2*M_PI* time_*params_.sin_freq_z_);
+  desired_acc.x() = -params_.sin_amp_x_*pow(2*M_PI*params_.sin_freq_x_, 2)*sin(2*M_PI* time_*params_.sin_freq_x_);
+  desired_acc.y() = -params_.sin_amp_y_*pow(2*M_PI*params_.sin_freq_y_, 2)*sin(2*M_PI* time_*params_.sin_freq_y_);
+  desired_acc.z() = -params_.sin_amp_z_*pow(2*M_PI*params_.sin_freq_z_, 2)*sin(2*M_PI* time_*params_.sin_freq_z_);
 
   // Our actual COP and desired Pcmp are at the origin of the coordinate system as we just
   // wanted to balance the system mainting them at that point
@@ -122,7 +126,9 @@ bool BalanceAction::cycleHook(const ros::Time &time)
   double dt = bc_->getControllerDt().toSec();
   current_com_pos_ = bc_->getActualCOMPosition();
   
-  desired_acc = desired_acc + params_.Kp_* (desired_pos - current_com_pos_) + params_.Kd_*(desired_vel - bc_->getActualCOMVelocity());
+  desired_acc.x() = desired_acc.x() + params_.Kp_x_* (desired_pos.x() - current_com_pos_.x()) + params_.Kd_x_*(desired_vel.x() - bc_->getActualCOMVelocity().x());
+  desired_acc.y() = desired_acc.y() + params_.Kp_y_* (desired_pos.y() - current_com_pos_.y()) + params_.Kp_y_*(desired_vel.y() - bc_->getActualCOMVelocity().y());
+  desired_acc.z() = desired_acc.z() + params_.Kp_z_* (desired_pos.z() - current_com_pos_.z()) + params_.Kp_z_*(desired_vel.z() - bc_->getActualCOMVelocity().z());
 
   // Eigen::Vector2d desiredCOM_acc = params_.Kp_*(desiredCOM - bc_->getActualCOMPosition()) + params_.Kd_*(desiredCOM_vel - bc_->getActualCOMVelocity()) + 
   //                                  omega * omega* ((actCOM - coordinate_system_2d.translation()) - (Pcmp-coordinate_system_2d.translation()));
