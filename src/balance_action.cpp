@@ -53,6 +53,9 @@ bool BalanceAction::configure(ros::NodeHandle &nh, BController *bController,
   com_states_pub_.reset(
     new realtime_tools::RealtimePublisher<std_msgs::Float64MultiArray>(nh, "com_states", 1));
 
+  desired_motions_buffer_.writeFromNonRT(default_motion_command_);
+  sub_command_ = nh.subscribe<std_msgs::Float64MultiArray>("motionCommand", 1, &BalanceAction::commandCallback, this);
+
   return true;
 }
 
@@ -89,22 +92,39 @@ bool BalanceAction::cycleHook(const ros::Time &time)
   eMatrixHom2d coordinate_system_2d;
   pal::convert(local_coordinate_frame, coordinate_system_2d);
 
+  std::vector<double>& desired_motionCommand = *desired_motions_buffer_.readFromRT();
+
   Eigen::Vector3d desired_pos;
   Eigen::Vector3d desired_vel;
   Eigen::Vector3d desired_acc;
 
   desired_pos.x() = params_.sin_amp_x_*sin(2*M_PI* time_*params_.sin_freq_x_);
-  desired_pos.y() = params_.sin_amp_y_*sin(2*M_PI* time_*params_.sin_freq_y_);
+  // desired_pos.y() = params_.sin_amp_y_*sin(2*M_PI* time_*params_.sin_freq_y_);
+  desired_pos.y() = desired_motionCommand[2]*sin(2*M_PI* desired_motionCommand[3]);
   desired_pos.z() = params_.sin_amp_z_*sin(2*M_PI* time_*params_.sin_freq_z_) +  bc_->getParameters()->z_height_;
 
   desired_vel.x() = params_.sin_amp_x_*2*M_PI*params_.sin_freq_x_*cos(2*M_PI* time_*params_.sin_freq_x_);
-  desired_vel.y() = params_.sin_amp_y_*2*M_PI*params_.sin_freq_y_*cos(2*M_PI* time_*params_.sin_freq_y_);
+  // desired_vel.y() = params_.sin_amp_y_*2*M_PI*params_.sin_freq_y_*cos(2*M_PI* time_*params_.sin_freq_y_);
+  desired_vel.y() = desired_motionCommand[2]*2*M_PI*desired_motionCommand[3]*cos(2*M_PI* time_*desired_motionCommand[3]);
   desired_vel.z() = params_.sin_amp_z_*2*M_PI*params_.sin_freq_z_*cos(2*M_PI* time_*params_.sin_freq_z_);
 
   desired_acc.x() = -params_.sin_amp_x_*pow(2*M_PI*params_.sin_freq_x_, 2)*sin(2*M_PI* time_*params_.sin_freq_x_);
-  desired_acc.y() = -params_.sin_amp_y_*pow(2*M_PI*params_.sin_freq_y_, 2)*sin(2*M_PI* time_*params_.sin_freq_y_);
+  // desired_acc.y() = -params_.sin_amp_y_*pow(2*M_PI*params_.sin_freq_y_, 2)*sin(2*M_PI* time_*params_.sin_freq_y_);
+  desired_acc.y() = -desired_motionCommand[2]*pow(2*M_PI*desired_motionCommand[3], 2)*sin(2*M_PI* time_*desired_motionCommand[3]);
   desired_acc.z() = -params_.sin_amp_z_*pow(2*M_PI*params_.sin_freq_z_, 2)*sin(2*M_PI* time_*params_.sin_freq_z_);
 
+  if (com_states_pub_ && com_states_pub_->trylock())
+  {   
+      current_com_pos_ = bc_->getActualCOMPosition();
+      com_states_pub_->msg_.data.resize(n_com_states_);
+      com_states_pub_->msg_.data[0] = current_com_pos_.x();
+      com_states_pub_->msg_.data[1] = current_com_pos_.y();
+      com_states_pub_->msg_.data[2] = current_com_pos_.z();
+      com_states_pub_->msg_.data[3] = desired_pos.x();
+      com_states_pub_->msg_.data[4] = desired_pos.y();
+      com_states_pub_->msg_.data[5] = desired_pos.z();
+      com_states_pub_->unlockAndPublish();
+  }
   // Our actual COP and desired Pcmp are at the origin of the coordinate system as we just
   // wanted to balance the system mainting them at that point
   // Eigen::Vector2d act_COP = coordinate_system_2d.translation();
@@ -140,18 +160,6 @@ bool BalanceAction::cycleHook(const ros::Time &time)
   bc_->setDesiredCOMVelocity(eVector3(desired_vel.x(), desired_vel.y(), desired_vel.z())); // It's only for debugging
   bc_->setDesiredCOMAcceleration(eVector3(desired_acc.x(), desired_acc.y(), desired_acc.z())); // This is for the control point
 
-  if (com_states_pub_ && com_states_pub_->trylock())
-  {   
-      current_com_pos_ = bc_->getActualCOMPosition();
-      com_states_pub_->msg_.data.resize(n_com_states_);
-      com_states_pub_->msg_.data[0] = current_com_pos_.x();
-      com_states_pub_->msg_.data[1] = current_com_pos_.y();
-      com_states_pub_->msg_.data[2] = current_com_pos_.z();
-      com_states_pub_->msg_.data[3] = desired_pos.x();
-      com_states_pub_->msg_.data[4] = desired_pos.y();
-      com_states_pub_->msg_.data[5] = desired_pos.z();
-      com_states_pub_->unlockAndPublish();
-  }
   // Set the ICP and COP attributes to the biped controller
   // All the below are only for debugging, but not used for the control point of view.
   // bc_->setDesiredICP(eVector3(desiredPcmp.x(), desiredPcmp.y(), 0.));
@@ -191,4 +199,8 @@ Eigen::Vector2d BalanceAction::computeActICP(double omega, const Eigen::Vector2d
 {
   Eigen::Vector2d icp = (com - local_coord) + (com_d / omega);
   return (icp + local_coord);
+}
+
+void BalanceAction::commandCallback(const std_msgs::Float64MultiArrayConstPtr& msg){
+  desired_motions_buffer_.writeFromNonRT(msg->data);
 }

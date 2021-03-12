@@ -13,8 +13,8 @@
 #include <pal_locomotion/state_machine/walking_action_base.h>
 // For realtime publisher and subscriber
 #include <realtime_tools/realtime_publisher.h>
-#include <std_msgs/Float64MultiArray.h>
 #include <realtime_tools/realtime_buffer.h>
+#include <std_msgs/Float64MultiArray.h>
 #include <ros/node_handle.h>
 #include<cmath>
 //#include <icp_walking_sim/icp_walking.h>
@@ -101,6 +101,12 @@ private:
   ddynamic_reconfigure::DDynamicReconfigurePtr ddr_;
   BalanceActionParameters params_;
   double time_;
+
+  // for real-time subscriber
+  ros::Subscriber sub_command_;
+  realtime_tools::RealtimeBuffer<std::vector<double>> desired_motions_buffer_;
+  std::vector<double> default_motion_command_{0.0, 0.0, 0.0, 0.0, 0.0, 0.0}; // for initialize the realtime buffer
+  void commandCallback(const std_msgs::Float64MultiArrayConstPtr& msg);
 
   std::shared_ptr<realtime_tools::RealtimePublisher<std_msgs::Float64MultiArray>> com_states_pub_;
   double n_com_states_;
