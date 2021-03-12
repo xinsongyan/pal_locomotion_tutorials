@@ -37,15 +37,15 @@ bool BalanceAction::configure(ros::NodeHandle &nh, BController *bController,
   ddr_->RegisterVariable(&params_.sin_freq_z_, "frequency_z", 0.0, 2.0);
   ddr_->RegisterVariable(&params_.sin_amp_z_, "amplitude_z", 0.0, 0.08);
   ddr_->RegisterVariable(&params_.sin_freq_y_, "frequency_y", 0.0, 2.0);
-  ddr_->RegisterVariable(&params_.sin_amp_y_, "amplitude_y", 0.0, 0.07);
+  ddr_->RegisterVariable(&params_.sin_amp_y_, "amplitude_y", 0.0, 0.085);
   ddr_->RegisterVariable(&params_.sin_freq_x_, "frequency_x", 0.0, 2.0);
   ddr_->RegisterVariable(&params_.sin_amp_x_, "amplitude_x", 0.0, 0.05);
-  ddr_->RegisterVariable(&params_.Kp_x_, "Kp_x", 0.0, 10.0);
-  ddr_->RegisterVariable(&params_.Kd_x_, "kd_x", 0.0, 1.0);
-  ddr_->RegisterVariable(&params_.Kp_y_, "Kp_y", 0.0, 10.0);
-  ddr_->RegisterVariable(&params_.Kd_y_, "kd_y", 0.0, 1.0);
-  ddr_->RegisterVariable(&params_.Kp_z_, "Kp_z", 0.0, 10.0);
-  ddr_->RegisterVariable(&params_.Kd_z_, "kd_z", 0.0, 1.0);
+  ddr_->RegisterVariable(&params_.Kp_x_, "Kp_x", 0.0, 30.0);
+  ddr_->RegisterVariable(&params_.Kd_x_, "kd_x", 0.0, 10.0);
+  ddr_->RegisterVariable(&params_.Kp_y_, "Kp_y", 0.0, 30.0);
+  ddr_->RegisterVariable(&params_.Kd_y_, "kd_y", 0.0, 10.0);
+  ddr_->RegisterVariable(&params_.Kp_z_, "Kp_z", 0.0, 30.0);
+  ddr_->RegisterVariable(&params_.Kd_z_, "kd_z", 0.0, 10.0);
   ddr_->publishServicesTopics();
 
   // For realtime publisher

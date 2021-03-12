@@ -36,12 +36,12 @@ struct BalanceActionParameters : public ariles::ConfigurableBase
     sin_amp_y_ = 0.0;
     sin_freq_x_ = 1.0;
     sin_amp_x_ = 0.0;
-    Kp_x_ = 1.0;
-    Kd_x_ = 0.1;
-    Kp_y_ = 1.0;
-    Kd_y_ = 0.1;
-    Kp_z_ = 1.0;
-    Kd_z_ = 0.1;
+    Kp_x_ = 5.0;
+    Kd_x_ = 1.0;
+    Kp_y_ = 10.0;
+    Kd_y_ = 2.0;
+    Kp_z_ = 5.0;
+    Kd_z_ = 1.0;
   }
 
 #define ARILES_SECTION_ID "BalanceActionParameters"
